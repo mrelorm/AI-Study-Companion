@@ -10,10 +10,13 @@ class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
 
   @override
-  State<AiChatScreen> createState() => _AiChatScreenState();
+  State<AiChatScreen> createState() => AiChatScreenState();
 }
 
-class _AiChatScreenState extends State<AiChatScreen> {
+// Public so HomeScreen can call refreshMaterials() on tab switch
+// ignore: library_private_types_in_public_api
+
+class AiChatScreenState extends State<AiChatScreen> with WidgetsBindingObserver {
   final _api = ApiClient();
   final _questionCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
@@ -27,15 +30,25 @@ class _AiChatScreenState extends State<AiChatScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadMaterials();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _loadMaterials();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _questionCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
   }
+
+  /// Called by HomeScreen when the AI Chat tab is tapped
+  void refreshMaterials() => _loadMaterials();
 
   Future<void> _loadMaterials() async {
     try {

@@ -16,14 +16,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  final _aiChatKey = GlobalKey<AiChatScreenState>();
 
   late final _screens = [
     _DashboardTab(onNavigate: (i) => setState(() => _selectedIndex = i)),
     const MaterialsScreen(),
-    const AiChatScreen(),
+    AiChatScreen(key: _aiChatKey),
     const QuizScreen(),
     const StudyPlanScreen(),
   ];
+
+  void _onTabSelected(int i) {
+    setState(() => _selectedIndex = i);
+    // Refresh materials list whenever AI Chat tab is tapped
+    if (i == 2) _aiChatKey.currentState?.refreshMaterials();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: NavigationBar(
           selectedIndex: _selectedIndex,
-          onDestinationSelected: (i) => setState(() => _selectedIndex = i),
+          onDestinationSelected: _onTabSelected,
           destinations: const [
             NavigationDestination(
                 icon: Icon(Icons.home_outlined),

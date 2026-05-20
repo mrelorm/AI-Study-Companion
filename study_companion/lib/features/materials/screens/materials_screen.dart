@@ -44,15 +44,22 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['pdf', 'txt', 'md'],
+      withData: true,
     );
     if (result == null || result.files.isEmpty) return;
     final file = result.files.first;
 
     setState(() => _uploading = true);
     try {
-      final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(file.path!, filename: file.name),
-      });
+      final MultipartFile multipartFile;
+      if (file.bytes != null) {
+        // Web — no file path available, use bytes directly
+        multipartFile = MultipartFile.fromBytes(file.bytes!, filename: file.name);
+      } else {
+        // Native (Android/iOS/desktop)
+        multipartFile = await MultipartFile.fromFile(file.path!, filename: file.name);
+      }
+      final formData = FormData.fromMap({'file': multipartFile});
       await _api.postFormData('/materials/upload', formData);
       await _load();
       if (mounted) {

@@ -3,15 +3,24 @@ package com.studycompanion.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class GeminiService {
+
+    private static final Logger log = LoggerFactory.getLogger(GeminiService.class);
+
+    private static final int MAX_RETRIES = 3;
+    private static final long[] BACKOFF_MS = {2000, 5000, 10000}; // 2s, 5s, 10s
 
     @Value("${gemini.api-key}")
     private String apiKey;
@@ -40,14 +49,30 @@ public class GeminiService {
                 )
         );
 
-        String response = client.post()
-                .uri("/models/{model}:generateContent?key={key}", model, apiKey)
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-
-        return extractText(response);
+        Exception lastException = null;
+        for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
+            try {
+                String response = client.post()
+                        .uri("/models/{model}:generateContent?key={key}", model, apiKey)
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .block();
+                return extractText(response);
+            } catch (WebClientResponseException e) {
+                lastException = e;
+                if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                    long delay = BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)];
+                    log.warn("Gemini rate limited (attempt {}/{}), retrying in {}ms", attempt + 1, MAX_RETRIES, delay);
+                    try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
+                } else {
+                    // Non-retryable error (4xx other than 429)
+                    throw new RuntimeException("Gemini API error: " + e.getStatusCode(), e);
+                }
+            }
+        }
+        log.error("Gemini rate limit exceeded after {} retries", MAX_RETRIES);
+        throw new RuntimeException("The AI is currently busy. Please try again in a moment.", lastException);
     }
 
     private String extractText(String jsonResponse) {
