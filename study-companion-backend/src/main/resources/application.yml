@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/studycompanion}
+      auto-index-creation: true
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-this-secret-in-production-min-32-chars}
+    access-token-expiry-ms: 900000       # 15 minutes
+    refresh-token-expiry-days: 30
+    issuer: study-companion-api
+    audience: study-companion-app
+    pending-mfa-token-expiry-ms: 600000  # 10 minutes
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:*}
+  rate-limit:
+    auth-requests-per-minute: 10
+  mfa:
+    otp-expiry-minutes: 5
+    otp-max-attempts: 5
+    from-email: ${MAIL_FROM:astudycompanion@gmail.com}
+    from-name: AI Study Companion
+
+gemini:
+  api-key: ${GEMINI_API_KEY}
+  model: gemini-1.5-flash
+  base-url: https://generativelanguage.googleapis.com/v1beta

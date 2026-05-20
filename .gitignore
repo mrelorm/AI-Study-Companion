@@ -1,0 +1,23 @@
+# Secrets — never commit
+.env
+*.env
+**/.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Backend build output
+study-companion-backend/target/
+
+# Flutter build output
+study_companion/build/
+study_companion/.dart_tool/
+study_companion/.pub-cache/
+study_companion/.pub/
+study_companion/.flutter-plugins-dependencies
