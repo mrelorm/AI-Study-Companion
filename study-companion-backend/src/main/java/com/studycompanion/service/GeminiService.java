@@ -61,9 +61,12 @@ public class GeminiService {
                 return extractText(response);
             } catch (WebClientResponseException e) {
                 lastException = e;
-                if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS ||
+                    e.getStatusCode() == HttpStatus.BAD_GATEWAY ||
+                    e.getStatusCode() == HttpStatus.SERVICE_UNAVAILABLE) {
                     long delay = BACKOFF_MS[Math.min(attempt, BACKOFF_MS.length - 1)];
-                    log.warn("Gemini rate limited (attempt {}/{}), retrying in {}ms", attempt + 1, MAX_RETRIES, delay);
+                    log.warn("Gemini transient error {} (attempt {}/{}), retrying in {}ms",
+                            e.getStatusCode(), attempt + 1, MAX_RETRIES, delay);
                     try { Thread.sleep(delay); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); }
                 } else {
                     // Non-retryable error (4xx other than 429)

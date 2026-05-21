@@ -383,7 +383,9 @@ class _TakeQuizScreenState extends State<_TakeQuizScreen> {
     try {
       final res = await widget.api.post(
           '/quizzes/${widget.quiz.id}/submit',
-          data: {'answers': _answers});
+          data: {
+            'answers': _answers.map((k, v) => MapEntry(k.toString(), v))
+          });
       final result = QuizResult.fromJson(res.data);
       if (mounted) {
         Navigator.pushReplacement(
