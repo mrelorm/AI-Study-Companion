@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/auth_provider.dart';
 import '../../../shared/theme/app_theme.dart';
-import 'mfa_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -32,16 +31,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!mounted) return;
 
     switch (result) {
-      case LoginMfaPending(:final pendingToken, :final maskedEmail):
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MfaScreen(
-              pendingToken: pendingToken,
-              maskedEmail: maskedEmail,
-            ),
-          ),
-        );
+      case LoginSuccess():
+        // _AppGate watches isAuthenticated and navigates automatically
+        break;
       case LoginFailed():
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -49,7 +41,8 @@ class _LoginScreenState extends State<LoginScreen> {
             backgroundColor: AppTheme.error,
           ),
         );
-      case LoginSuccess():
+      case LoginMfaPending():
+        // Should not occur for login — handled as LoginSuccess
         break;
     }
   }
@@ -139,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   keyboardType: TextInputType.emailAddress,
                   style: const TextStyle(color: AppTheme.textPrimary),
                   decoration: const InputDecoration(
-                    labelText: 'University email',
+                    labelText: 'Email address',
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   validator: (v) =>

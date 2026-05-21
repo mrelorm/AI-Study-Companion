@@ -1,6 +1,6 @@
 package com.studycompanion.controller;
 
-import com.studycompanion.model.StudyMaterial;
+import com.studycompanion.dto.StudyMaterialDto;
 import com.studycompanion.service.MaterialService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,22 +19,23 @@ public class MaterialController {
     private final MaterialService materialService;
 
     @PostMapping("/upload")
-    public ResponseEntity<StudyMaterial> upload(
+    public ResponseEntity<StudyMaterialDto> upload(
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal String userId) throws IOException {
-        return ResponseEntity.ok(materialService.upload(file, userId));
+        return ResponseEntity.ok(StudyMaterialDto.from(materialService.upload(file, userId)));
     }
 
     @GetMapping
-    public ResponseEntity<List<StudyMaterial>> list(@AuthenticationPrincipal String userId) {
-        return ResponseEntity.ok(materialService.getByUser(userId));
+    public ResponseEntity<List<StudyMaterialDto>> list(@AuthenticationPrincipal String userId) {
+        return ResponseEntity.ok(
+                materialService.getByUser(userId).stream().map(StudyMaterialDto::from).toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<StudyMaterial> get(
+    public ResponseEntity<StudyMaterialDto> get(
             @PathVariable String id,
             @AuthenticationPrincipal String userId) {
-        return ResponseEntity.ok(materialService.getById(id, userId));
+        return ResponseEntity.ok(StudyMaterialDto.from(materialService.getById(id, userId)));
     }
 
     @DeleteMapping("/{id}")

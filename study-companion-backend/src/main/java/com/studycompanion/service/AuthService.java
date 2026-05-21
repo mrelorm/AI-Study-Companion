@@ -2,6 +2,7 @@ package com.studycompanion.service;
 
 import com.studycompanion.dto.AuthRequest;
 import com.studycompanion.dto.AuthResponse;
+import com.studycompanion.dto.LoginRequest;
 import com.studycompanion.dto.MfaPendingResponse;
 import com.studycompanion.model.MfaOtp;
 import com.studycompanion.model.RefreshToken;
@@ -72,20 +73,18 @@ public class AuthService {
         return new MfaPendingResponse(true, pendingToken, maskEmail(user.getEmail()));
     }
 
-    // ── Login — step 1: verify password, issue OTP ────────────────────────
+    // ── Login — verify password, issue tokens directly ────────────────────
 
-    public MfaPendingResponse login(AuthRequest request) {
+    public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail().toLowerCase().trim())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials"));
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid credentials");
         }
 
-        String otp = generateAndStoreOtp(user.getId());
-        emailService.sendOtp(user.getEmail(), user.getName(), otp);
-
-        String pendingToken = tokenProvider.generatePendingMfaToken(user.getId());
-        return new MfaPendingResponse(true, pendingToken, maskEmail(user.getEmail()));
+        String accessToken = tokenProvider.generateAccessToken(user.getId());
+        String refreshToken = issueRefreshToken(user.getId());
+        return new AuthResponse(accessToken, refreshToken, user.getId(), user.getEmail(), user.getName());
     }
 
     // ── Login — step 2: verify OTP, issue tokens ──────────────────────────

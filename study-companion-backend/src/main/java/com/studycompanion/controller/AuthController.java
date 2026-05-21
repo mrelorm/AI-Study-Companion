@@ -22,9 +22,8 @@ public class AuthController {
         return ResponseEntity.ok(authService.register(request));
     }
 
-    /** Step 1 — validate password, send OTP email, return pending token. */
     @PostMapping("/login")
-    public ResponseEntity<MfaPendingResponse> login(@Valid @RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
     }
 

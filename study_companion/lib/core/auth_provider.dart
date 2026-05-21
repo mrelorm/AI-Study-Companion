@@ -52,15 +52,7 @@ class AuthProvider extends ChangeNotifier {
     try {
       final res = await _api.post('/auth/login',
           data: {'email': email, 'password': password});
-      final data = res.data as Map<String, dynamic>;
-      if (data['mfaRequired'] == true) {
-        return LoginMfaPending(
-          data['pendingToken'] as String,
-          data['maskedEmail'] as String? ?? '',
-        );
-      }
-      // Defensive: if server ever skips MFA (e.g. test mode), log in directly.
-      _user = AuthResponse.fromJson(data);
+      _user = AuthResponse.fromJson(res.data);
       await _persistSession(_user!);
       notifyListeners();
       return LoginSuccess();

@@ -29,7 +29,15 @@ public class JwtTokenProvider {
             @Value("${app.jwt.pending-mfa-token-expiry-ms}") long pendingMfaTokenExpiryMs,
             @Value("${app.jwt.issuer}") String issuer,
             @Value("${app.jwt.audience}") String audience) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        // Enforce minimum 32-byte (256-bit) secret for HMAC-SHA256
+        byte[] secretBytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (secretBytes.length < 32) {
+            throw new IllegalArgumentException(
+                "JWT secret must be at least 32 characters (256 bits). " +
+                "Current length: " + secretBytes.length + " bytes. " +
+                "Generate a secure secret with: openssl rand -base64 32");
+        }
+        this.key = Keys.hmacShaKeyFor(secretBytes);
         this.accessTokenExpiryMs = accessTokenExpiryMs;
         this.pendingMfaTokenExpiryMs = pendingMfaTokenExpiryMs;
         this.issuer = issuer;
