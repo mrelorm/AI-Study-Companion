@@ -1,8 +1,17 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiClient {
-  static const String _baseUrl = 'http://localhost:8080/api';
+  // Android emulator cannot reach the host via 'localhost' — it uses 10.0.2.2.
+  // Physical Android devices on the same network would need the Mac's LAN IP instead.
+  static String get _baseUrl {
+    if (!kIsWeb && Platform.isAndroid) {
+      return 'http://10.0.2.2:8080/api';
+    }
+    return 'http://localhost:8080/api';
+  }
   static const _storage = FlutterSecureStorage();
 
   static final ApiClient _instance = ApiClient._internal();

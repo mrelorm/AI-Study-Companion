@@ -23,7 +23,8 @@ dependencies:
   # File picker (PDFs, slides)
   file_picker: ^8.1.2
 
-  # Shared preferences (settings)
+  # Shared preferences — for non-sensitive settings (UI prefs, display options) ONLY.
+  # NEVER store tokens, passwords, user IDs, or any PII here — use flutter_secure_storage.
   shared_preferences: ^2.3.3
 
   # Markdown rendering (AI responses)
@@ -36,7 +37,10 @@ dependencies:
   shimmer: ^3.0.0
 
   # Toast / snackbars
-  fluttertoast: ^8.2.8
+  fluttertoast: ^9.1.0
+
+  # Root/jailbreak detection — warns user on compromised devices
+  flutter_jailbreak_detection: ^1.10.0
 
   # Icons
   flutter_svg: ^2.0.10+1

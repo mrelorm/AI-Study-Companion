@@ -215,6 +215,17 @@ class AuthProvider extends ChangeNotifier {
     await _storage.delete(key: _keyName);
   }
 
+  /// Checks whether the JWT access token's [exp] claim is in the past.
+  ///
+  /// ⚠️ SECURITY NOTE: This decodes the JWT payload WITHOUT verifying the
+  /// signature. It is used solely as a performance heuristic to avoid
+  /// unnecessary refresh calls on app launch (i.e. skip the refresh request
+  /// if the token is clearly still valid).
+  ///
+  /// This must NEVER be used for local authorisation decisions (e.g. checking
+  /// user roles or permissions). All access control is enforced server-side.
+  /// A tampered token that passes this check will still be rejected by the
+  /// backend with a 401.
   bool _isTokenExpired(String token) {
     try {
       final parts = token.split('.');

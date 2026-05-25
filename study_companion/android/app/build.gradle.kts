@@ -43,3 +43,8 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+// Redirect build output to Flutter's expected location — CC-safe, no cross-project capture
+layout.buildDirectory.set(
+    rootProject.layout.buildDirectory.dir("app")
+)
